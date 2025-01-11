@@ -1,0 +1,50 @@
+{
+    "name": "chatbot-interface",
+    "version": "1.0.0",
+    "description": "A chatbot interface built with React",
+    "main": "index.js",
+    "scripts": {
+        "start": "react-scripts start",
+        "build": "react-scripts build",
+        "test": "react-scripts test",
+        "eject": "react-scripts eject"
+    },
+    "dependencies": {
+        "@fortawesome/fontawesome-svg-core": "6.5.1",
+        "@fortawesome/free-solid-svg-icons": "6.5.1",
+        "@fortawesome/react-fontawesome": "0.2.0",
+        "@tailwindcss/typography": "^0.5.16",
+        "react": "18.2.0",
+        "react-dom": "18.2.0",
+        "react-markdown": "^9.0.3",
+        "react-scripts": "5.0.1",
+        "react-syntax-highlighter": "^15.6.1",
+        "express": "^4.18.2",
+        "pg": "^8.11.3",
+        "bcrypt": "^5.1.1",
+        "jsonwebtoken": "^9.0.2",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1"
+    },
+    "devDependencies": {
+        "autoprefixer": "10.4.17",
+        "postcss": "8.4.35",
+        "tailwindcss": "3.4.1"
+    },
+    "overrides": {
+        "@svgr/webpack": "^8.1.0",
+        "resolve-url-loader": "^5.0.0"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    }
+}

@@ -1,0 +1,8 @@
+body {
+    font-family: "Poppins", sans-serif;
+  }
+  
+  textarea {
+    min-height: 44px;
+    overflow-y: hidden;
+  }
