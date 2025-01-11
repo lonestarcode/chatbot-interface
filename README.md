@@ -8,7 +8,7 @@ A modern chat interface built with React and Flask, featuring real-time communic
 - Dark/Light mode toggle
 - Markdown support for messages
 - Syntax highlighting for code blocks
-- Save favorite prompts (once database is initialized)
+- Save favorite prompts (Coming soon)
 - Responsive design
 
 ## Tech Stack
