@@ -5,6 +5,9 @@ import ChatInput from './components/ChatInput';
 import ChatMessage from './components/ChatMessage';
 import ChatLayout from './components/ChatLayout';
 import Prompts from './components/Prompts';
+import AuthChoice from './components/AuthChoice';
+import Login from './components/Login';
+import Register from './components/Register';
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -12,6 +15,8 @@ function App() {
   const [savedPrompts, setSavedPrompts] = useState({});
   const [currentView, setCurrentView] = useState('chat');
   const messagesEndRef = useRef(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [authView, setAuthView] = useState('choice'); // 'choice', 'login', or 'register'
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -86,6 +91,37 @@ function App() {
       }]);
     }
   };
+
+  const handleAuthSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className={darkMode ? 'dark' : ''}>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          {authView === 'choice' && (
+            <AuthChoice 
+              onSelect={setAuthView}
+              darkMode={darkMode}
+            />
+          )}
+          {authView === 'login' && (
+            <Login 
+              onSuccess={handleAuthSuccess}
+              onBack={() => setAuthView('choice')}
+            />
+          )}
+          {authView === 'register' && (
+            <Register 
+              onSuccess={handleAuthSuccess}
+              onBack={() => setAuthView('choice')}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
