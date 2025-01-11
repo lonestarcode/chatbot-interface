@@ -15,8 +15,22 @@ function App() {
   const [savedPrompts, setSavedPrompts] = useState({});
   const [currentView, setCurrentView] = useState('chat');
   const messagesEndRef = useRef(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
-  const [authView, setAuthView] = useState('choice'); // 'choice', 'login', or 'register'
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authView, setAuthView] = useState('choice');
+
+  const handleAuthSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleGuestAccess = () => {
+    setIsAuthenticated(true);
+    localStorage.setItem('isGuest', 'true');
+  };
+
+  useEffect(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('isGuest');
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -92,17 +106,19 @@ function App() {
     }
   };
 
-  const handleAuthSuccess = () => {
-    setIsAuthenticated(true);
-  };
-
   if (!isAuthenticated) {
     return (
       <div className={darkMode ? 'dark' : ''}>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           {authView === 'choice' && (
             <AuthChoice 
-              onSelect={setAuthView}
+              onSelect={(view) => {
+                if (view === 'guest') {
+                  handleGuestAccess();
+                } else {
+                  setAuthView(view);
+                }
+              }}
               darkMode={darkMode}
             />
           )}

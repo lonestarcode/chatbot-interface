@@ -21,35 +21,15 @@ const db = new sqlite3.Database(path.join(__dirname, 'database.sqlite'), (err) =
     console.error('Error connecting to database:', err);
   } else {
     console.log('Connected to SQLite database');
-    initializeDatabase();
+    initializeTables();
   }
 });
 
-// Initialize database tables
-function initializeDatabase() {
-  try {
-    // Read and execute schema file
-    const schema = fs.readFileSync(path.join(__dirname, 'schema.sqlite.sql'), 'utf8');
-    db.serialize(() => {
-      db.exec(schema, (err) => {
-        if (err) {
-          console.error('Error executing schema:', err);
-        } else {
-          console.log('Database schema initialized successfully');
-        }
-      });
-    });
-  } catch (err) {
-    console.error('Error reading schema file:', err);
-    // Fall back to creating tables directly if schema file is not found
-    initializeTablesDirectly();
-  }
-}
-
-// Add this as a fallback
-function initializeTablesDirectly() {
+// Initialize tables
+function initializeTables() {
+  // Create tables one at a time to ensure proper order
   db.serialize(() => {
-    // Your existing table creation code
+    // Users table
     db.run(`
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,8 +38,15 @@ function initializeTablesDirectly() {
         password_hash TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
-    `);
+    `, (err) => {
+      if (err) {
+        console.error('Error creating users table:', err);
+      } else {
+        console.log('Users table ready');
+      }
+    });
 
+    // Prompts table
     db.run(`
       CREATE TABLE IF NOT EXISTS prompts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,10 +56,22 @@ function initializeTablesDirectly() {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
       )
-    `);
+    `, (err) => {
+      if (err) {
+        console.error('Error creating prompts table:', err);
+      } else {
+        console.log('Prompts table ready');
+      }
+    });
 
-    db.run('CREATE INDEX IF NOT EXISTS idx_prompts_user_id ON prompts(user_id)');
-    db.run('CREATE INDEX IF NOT EXISTS idx_prompts_created_at ON prompts(created_at)');
+    // Create indexes
+    db.run('CREATE INDEX IF NOT EXISTS idx_prompts_user_id ON prompts(user_id)', (err) => {
+      if (err) console.error('Error creating user_id index:', err);
+    });
+
+    db.run('CREATE INDEX IF NOT EXISTS idx_prompts_created_at ON prompts(created_at)', (err) => {
+      if (err) console.error('Error creating created_at index:', err);
+    });
   });
 }
 
