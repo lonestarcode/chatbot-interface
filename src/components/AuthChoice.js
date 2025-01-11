@@ -1,39 +1,85 @@
-import React from 'react';
+import React, { useState } from 'react';
+import AuthBackground from './AuthBackground';
 
-function AuthChoice({ onSelect, darkMode }) {
+function AuthChoice({ onSelect, darkMode, onAuthSuccess }) {
+  const [view, setView] = useState('choice');
+
+  const handleBack = () => setView('choice');
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    // Handle form submission logic here
+    onAuthSuccess();
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Welcome to AI Chat
+    <AuthBackground>
+      {view === 'choice' && (
+        <div className="flex flex-col items-center -mt-20">
+          <h2 className="text-5xl font-['Space_Grotesk'] font-bold tracking-wide text-white">
+            Odessa
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Your Personal AI Assistant
+          <p className="mt-3 text-lg italic text-gray-200">
+            Ollama AI Interface
           </p>
+          <div className="mt-8 space-y-4 flex flex-col items-center">
+            <button
+              onClick={() => onSelect('guest')}
+              className="w-48 flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-400/20 hover:bg-gray-400/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all duration-200"
+            >
+              Guest
+            </button>
+            <button
+              onClick={() => setView('login')}
+              className="w-48 flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-400/20 hover:bg-gray-400/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all duration-200"
+            >
+              Login
+            </button>
+            <button
+              onClick={() => setView('register')}
+              className="w-48 flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-400/20 hover:bg-gray-400/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all duration-200"
+            >
+              Register
+            </button>
+          </div>
         </div>
-        <div className="mt-8 space-y-4">
-          <button
-            onClick={() => onSelect('guest')}
-            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
-          >
-            Continue as Guest
-          </button>
-          <button
-            onClick={() => onSelect('login')}
-            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-          >
-            Sign In with Existing Account
-          </button>
-          <button
-            onClick={() => onSelect('register')}
-            className="group relative w-full flex justify-center py-3 px-4 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-md text-gray-700 dark:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-          >
-            Create New Account
-          </button>
-        </div>
-      </div>
-    </div>
+      )}
+
+      {(view === 'login' || view === 'register') && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <h2 className="text-3xl font-bold text-white">
+            {view === 'login' ? 'Sign In' : 'Create Account'}
+          </h2>
+          <input
+            type="email"
+            required
+            placeholder="Email"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <input
+            type="password"
+            required
+            placeholder="Password"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="group relative flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              ← Back
+            </button>
+            <button
+              type="submit"
+              className="group relative flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              {view === 'login' ? 'Sign In' : 'Create Account'}
+            </button>
+          </div>
+        </form>
+      )}
+    </AuthBackground>
   );
 }
 

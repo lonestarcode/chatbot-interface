@@ -6,8 +6,6 @@ import ChatMessage from './components/ChatMessage';
 import ChatLayout from './components/ChatLayout';
 import Prompts from './components/Prompts';
 import AuthChoice from './components/AuthChoice';
-import Login from './components/Login';
-import Register from './components/Register';
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -16,7 +14,6 @@ function App() {
   const [currentView, setCurrentView] = useState('chat');
   const messagesEndRef = useRef(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authView, setAuthView] = useState('choice');
 
   const handleAuthSuccess = () => {
     setIsAuthenticated(true);
@@ -110,30 +107,15 @@ function App() {
     return (
       <div className={darkMode ? 'dark' : ''}>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-          {authView === 'choice' && (
-            <AuthChoice 
-              onSelect={(view) => {
-                if (view === 'guest') {
-                  handleGuestAccess();
-                } else {
-                  setAuthView(view);
-                }
-              }}
-              darkMode={darkMode}
-            />
-          )}
-          {authView === 'login' && (
-            <Login 
-              onSuccess={handleAuthSuccess}
-              onBack={() => setAuthView('choice')}
-            />
-          )}
-          {authView === 'register' && (
-            <Register 
-              onSuccess={handleAuthSuccess}
-              onBack={() => setAuthView('choice')}
-            />
-          )}
+          <AuthChoice 
+            onSelect={(view) => {
+              if (view === 'guest') {
+                handleGuestAccess();
+              }
+            }}
+            darkMode={darkMode}
+            onAuthSuccess={handleAuthSuccess}
+          />
         </div>
       </div>
     );
