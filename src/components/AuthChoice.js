@@ -16,12 +16,23 @@ function AuthChoice({ onSelect, darkMode, onAuthSuccess }) {
     <AuthBackground>
       {view === 'choice' && (
         <div className="flex flex-col items-center -mt-20">
-          <h2 className="text-5xl font-['Space_Grotesk'] font-bold tracking-wide text-white">
-            Odessa
-          </h2>
-          <p className="mt-3 text-lg italic text-gray-200">
-            Ollama AI Interface
-          </p>
+          <div className="flex items-center">
+            <svg 
+              className="w-10 h-10 mr-3 mb-[2px]" 
+              viewBox="0 0 100 100" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="50" cy="50" r="30" fill="white" className="opacity-90" />
+              <ellipse cx="50" cy="50" rx="50" ry="20" fill="gray" className="opacity-70" />
+            </svg>
+            <div className="text-center">
+              <h2 className="text-5xl font-['Space_Grotesk'] font-bold tracking-wide text-white">
+                Odessa
+              </h2>
+              <span className="block italic text-lg text-gray-200">AI Interface</span>
+            </div>
+          </div>
           <div className="mt-8 space-y-4 flex flex-col items-center">
             <button
               onClick={() => onSelect('guest')}

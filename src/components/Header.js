@@ -31,66 +31,21 @@ function Header({ darkMode, onToggleDarkMode }) {
   };
 
   return (
-    <header className="bg-gradient-to-b from-[#1B3B6F] to-[#065A82] text-white relative">
+    <header className="bg-gradient-to-b from-gray-200 to-gray-100 text-gray-800 relative">
       <div className="p-4 flex justify-between items-center">
         <div className="flex items-end justify-center flex-1">
           <svg 
-            className="w-10 h-10 mr-3 mb-[2px]" 
+            className="w-10 h-10 mr-3 mb-[2px] text-gray-600" 
             viewBox="0 0 100 100" 
-            fill="none" 
+            fill="currentColor" 
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path 
-              d="M45 80 L45 30 Q45 20 50 20 Q55 20 55 30 L55 80 Z" 
-              fill="currentColor"
-              className="opacity-90"
-            />
-            <path 
-              d="M45 45 L45 44 Q45 35 40 35 Q35 35 35 44 L35 55 Q35 60 40 60 L45 60" 
-              fill="currentColor"
-              className="opacity-90"
-            />
-            <path 
-              d="M55 35 L55 34 Q55 25 60 25 Q65 25 65 34 L65 45 Q65 50 60 50 L55 50" 
-              fill="currentColor"
-              className="opacity-90"
-            />
-            <path 
-              d="M42 35 L38 33 M42 45 L38 43 M42 55 L38 53 M42 65 L38 63 M42 75 L38 73
-                 M42 40 L38 38 M42 50 L38 48 M42 60 L38 58 M42 70 L38 68"
-              stroke="currentColor"
-              strokeWidth="1"
-              className="opacity-70"
-            />
-            <path 
-              d="M58 30 L62 28 M58 40 L62 38 M58 50 L62 48 M58 60 L62 58 M58 70 L62 68
-                 M58 35 L62 33 M58 45 L62 43 M58 55 L62 53 M58 65 L62 63"
-              stroke="currentColor"
-              strokeWidth="1"
-              className="opacity-70"
-            />
-            <path 
-              d="M35 48 L32 46 M35 52 L32 50
-                 M65 38 L68 36 M65 42 L68 40"
-              stroke="currentColor"
-              strokeWidth="1"
-              className="opacity-70"
-            />
-            <path 
-              d="M48 25 L48 75 M52 25 L52 75" 
-              stroke="currentColor"
-              strokeWidth="1"
-              className="opacity-40"
-            />
-            <path 
-              d="M30 80 Q40 77 50 77 Q60 77 70 80" 
-              stroke="currentColor"
-              strokeWidth="2"
-              className="opacity-60"
-            />
+            <circle cx="50" cy="50" r="30" className="opacity-70" />
+            <ellipse cx="50" cy="50" rx="50" ry="20" className="opacity-50" />
           </svg>
-          <h1 className="text-xl font-['Space_Grotesk'] font-bold tracking-wide">
+          <h1 className="text-2xl font-serif font-medium tracking-wide text-gray-800">
             Odessa
+            <span className="ml-2 italic text-sm text-gray-600">AI Interface</span>
           </h1>
         </div>
         <div ref={settingsRef}>
