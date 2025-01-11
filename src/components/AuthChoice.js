@@ -33,13 +33,8 @@ function AuthChoice({ onSelect, darkMode, onAuthSuccess }) {
               <span className="block italic text-lg text-gray-200">AI Interface</span>
             </div>
           </div>
+          <div className="h-24"></div> {/* Further increased buffer between AI Interface and Login */}
           <div className="mt-8 space-y-4 flex flex-col items-center">
-            <button
-              onClick={() => onSelect('guest')}
-              className="w-48 flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-400/20 hover:bg-gray-400/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all duration-200"
-            >
-              Guest
-            </button>
             <button
               onClick={() => setView('login')}
               className="w-48 flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-400/20 hover:bg-gray-400/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all duration-200"
@@ -51,6 +46,13 @@ function AuthChoice({ onSelect, darkMode, onAuthSuccess }) {
               className="w-48 flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-400/20 hover:bg-gray-400/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all duration-200"
             >
               Register
+            </button>
+            <div className="h-8"></div> {/* Reduced buffer between Register and Guest */}
+            <button
+              onClick={() => onSelect('guest')}
+              className="mt-16 w-48 flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-500/20 hover:bg-gray-500/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+            >
+              Guest
             </button>
           </div>
         </div>
