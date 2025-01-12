@@ -30,7 +30,7 @@ function AuthChoice({ onSelect, darkMode, onAuthSuccess }) {
               <h2 className="text-5xl font-['Space_Grotesk'] font-bold tracking-wide text-white">
                 Odessa
               </h2>
-              <span className="block italic text-lg text-gray-200">AI Interface</span>
+              <span className="block italic text-lg text-gray-200">Ollama AI Interface</span>
             </div>
           </div>
           <div className="h-24"></div> {/* Further increased buffer between AI Interface and Login */}
