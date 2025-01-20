@@ -127,14 +127,14 @@ function App() {
             currentView={currentView}
             onNavigate={handleNavigate}
           />
-          <div className="flex flex-1">
+          <div className="flex flex-1 overflow-hidden">
             <Sidebar 
               onNavigate={handleNavigate}
               currentView={currentView}
               darkMode={darkMode}
               onToggleDarkMode={() => setDarkMode(!darkMode)}
             />
-            <main className="flex-1 relative">
+            <main className="flex-1 overflow-auto relative">
               {currentView === 'chat' ? (
                 <ChatLayout
                   inputComponent={
