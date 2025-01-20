@@ -6,6 +6,7 @@ import ChatMessage from './components/ChatMessage';
 import ChatLayout from './components/ChatLayout';
 import Prompts from './components/Prompts';
 import AuthChoice from './components/AuthChoice';
+import Groups from './components/Groups';
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -156,11 +157,13 @@ function App() {
                   ))}
                   <div ref={messagesEndRef} />
                 </ChatLayout>
-              ) : (
+              ) : currentView === 'prompts' ? (
                 <Prompts 
                   darkMode={darkMode} 
                   refreshTrigger={promptsRefreshTrigger}
                 />
+              ) : (
+                <Groups darkMode={darkMode} />
               )}
             </main>
           </div>

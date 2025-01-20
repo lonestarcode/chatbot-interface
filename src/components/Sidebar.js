@@ -33,6 +33,15 @@ function Sidebar({ onNavigate, currentView, darkMode, onToggleDarkMode }) {
               <FontAwesomeIcon icon={faLightbulb} className="text-gray-600 dark:text-gray-400 w-5 h-5" />
               <span className="text-gray-700 dark:text-gray-300">Prompts</span>
             </li>
+            <li 
+              onClick={() => onNavigate('groups')}
+              className={`p-3 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-lg cursor-pointer 
+                        transition-colors flex items-center space-x-3
+                        ${currentView === 'groups' ? 'bg-gray-300 dark:bg-gray-700' : ''}`}
+            >
+              <FontAwesomeIcon icon={faUserGroup} className="text-gray-600 dark:text-gray-400 w-5 h-5" />
+              <span className="text-gray-700 dark:text-gray-300">Groups</span>
+            </li>
           </ul>
         </nav>
         <div className="mt-auto pt-4 border-t border-gray-300 dark:border-gray-700">
