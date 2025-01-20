@@ -5,13 +5,13 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const path = require('path');
-const fs = require('fs');
 
 const app = express();
 app.use(cors({
   origin: 'http://localhost:3000',
   methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 app.use(express.json());
 
@@ -27,7 +27,6 @@ const db = new sqlite3.Database(path.join(__dirname, 'database.sqlite'), (err) =
 
 // Initialize tables
 function initializeTables() {
-  // Create tables one at a time to ensure proper order
   db.serialize(() => {
     // Users table
     db.run(`
@@ -65,103 +64,76 @@ function initializeTables() {
     });
 
     // Create indexes
-    db.run('CREATE INDEX IF NOT EXISTS idx_prompts_user_id ON prompts(user_id)', (err) => {
-      if (err) console.error('Error creating user_id index:', err);
-    });
-
-    db.run('CREATE INDEX IF NOT EXISTS idx_prompts_created_at ON prompts(created_at)', (err) => {
-      if (err) console.error('Error creating created_at index:', err);
-    });
+    db.run('CREATE INDEX IF NOT EXISTS idx_prompts_user_id ON prompts(user_id)');
+    db.run('CREATE INDEX IF NOT EXISTS idx_prompts_created_at ON prompts(created_at)');
   });
 }
 
-// Test endpoint
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Server is working' });
+// Debug endpoint - Remove in production
+app.get('/api/debug/users', (req, res) => {
+  db.all('SELECT id, email, username, created_at FROM users', [], (err, users) => {
+    if (err) {
+      console.error('Debug endpoint error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json({ users });
+  });
 });
 
-// Register endpoint
+// Authentication endpoints
 app.post('/api/register', async (req, res) => {
-  console.log('Registration request received:', req.body);
-  
-  if (!req.body.username || !req.body.email || !req.body.password) {
-    console.log('Missing required fields');
-    return res.status(400).json({
-      error: 'All fields are required'
-    });
-  }
-
   try {
     const { username, email, password } = req.body;
-    console.log('Processing registration for:', { username, email });
-    
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
-    // Check if user already exists
-    db.get(
-      'SELECT id FROM users WHERE email = ? OR username = ?',
-      [email, username],
-      (err, existingUser) => {
+    db.run(
+      'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
+      [username, email, password_hash],
+      function(err) {
         if (err) {
-          console.error('Database error during user check:', err);
-          return res.status(500).json({ error: 'Database error' });
-        }
-
-        if (existingUser) {
-          console.log('User already exists');
-          return res.status(400).json({ error: 'User already exists' });
-        }
-
-        console.log('Creating new user...');
-        
-        // Insert new user
-        db.run(
-          'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
-          [username, email, password_hash],
-          function(err) {
-            if (err) {
-              console.error('Database error during insert:', err);
-              return res.status(500).json({ error: 'Error creating user' });
-            }
-
-            const userId = this.lastID;
-            console.log('User created with ID:', userId);
-
-            const token = jwt.sign(
-              { id: userId },
-              process.env.JWT_SECRET || 'your-secret-key',
-              { expiresIn: '24h' }
-            );
-
-            res.status(201).json({
-              token,
-              user: {
-                id: userId,
-                username,
-                email
-              }
-            });
+          console.error('Database error:', err);
+          if (err.message.includes('UNIQUE constraint failed')) {
+            return res.status(400).json({ error: 'Username or email already exists' });
           }
+          return res.status(500).json({ error: 'Error creating user' });
+        }
+
+        const token = jwt.sign(
+          { id: this.lastID },
+          process.env.JWT_SECRET || 'your-secret-key',
+          { expiresIn: '24h' }
         );
+
+        res.status(201).json({ token });
       }
     );
-  } catch (err) {
-    console.error('Server error:', err);
+  } catch (error) {
+    console.error('Registration error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Login endpoint
 app.post('/api/login', async (req, res) => {
   try {
+    console.log('Login attempt:', req.body);
     const { email, password } = req.body;
 
-    db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    db.get('SELECT * FROM users WHERE email = ? COLLATE NOCASE', [email], async (err, user) => {
       if (err) {
+        console.error('Database error:', err);
         return res.status(500).json({ error: 'Database error' });
       }
-      
+
       if (!user) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
@@ -172,15 +144,144 @@ app.post('/api/login', async (req, res) => {
       }
 
       const token = jwt.sign(
-        { id: user.id }, 
-        process.env.JWT_SECRET || 'your-secret-key'
+        { id: user.id },
+        process.env.JWT_SECRET || 'your-secret-key',
+        { expiresIn: '24h' }
       );
-      
+
       res.json({ token });
     });
-  } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ error: 'Server error during login' });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Prompts endpoints
+app.post('/api/prompts', async (req, res) => {
+  try {
+    console.log('Received prompt save request:', req.body);
+    console.log('Headers:', req.headers);
+
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token || token === 'guest-token') {
+      console.log('Unauthorized: No token or guest token');
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      console.log('Decoded token:', decoded);
+    } catch (err) {
+      console.error('Token verification failed:', err);
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    const { content } = req.body;
+    if (!content) {
+      console.log('No content provided');
+      return res.status(400).json({ error: 'Content is required' });
+    }
+
+    db.run(
+      'INSERT INTO prompts (user_id, content, is_saved) VALUES (?, ?, 1)',
+      [decoded.id, content],
+      function(err) {
+        if (err) {
+          console.error('Database error when saving prompt:', err);
+          return res.status(500).json({ error: 'Error saving prompt' });
+        }
+
+        console.log('Prompt saved successfully:', this.lastID);
+        res.status(201).json({
+          id: this.lastID,
+          content,
+          user_id: decoded.id,
+          is_saved: 1,
+          created_at: new Date().toISOString()
+        });
+      }
+    );
+  } catch (error) {
+    console.error('Error in save prompt endpoint:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/prompts/saved', async (req, res) => {
+  try {
+    console.log('Fetching saved prompts');
+    console.log('Headers:', req.headers);
+
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token || token === 'guest-token') {
+      console.log('Unauthorized: No token or guest token');
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      console.log('Decoded token:', decoded);
+    } catch (err) {
+      console.error('Token verification failed:', err);
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    db.all(
+      'SELECT * FROM prompts WHERE user_id = ? AND is_saved = 1 ORDER BY created_at DESC',
+      [decoded.id],
+      (err, prompts) => {
+        if (err) {
+          console.error('Database error when fetching saved prompts:', err);
+          return res.status(500).json({ error: 'Database error' });
+        }
+        console.log('Retrieved saved prompts:', prompts);
+        res.json(prompts);
+      }
+    );
+  } catch (error) {
+    console.error('Error in get saved prompts endpoint:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/prompts/recent', async (req, res) => {
+  try {
+    console.log('Fetching recent prompts');
+    console.log('Headers:', req.headers);
+
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token || token === 'guest-token') {
+      console.log('Unauthorized: No token or guest token');
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      console.log('Decoded token:', decoded);
+    } catch (err) {
+      console.error('Token verification failed:', err);
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    db.all(
+      'SELECT * FROM prompts WHERE user_id = ? ORDER BY created_at DESC LIMIT 10',
+      [decoded.id],
+      (err, prompts) => {
+        if (err) {
+          console.error('Database error when fetching recent prompts:', err);
+          return res.status(500).json({ error: 'Database error' });
+        }
+        console.log('Retrieved recent prompts:', prompts);
+        res.json(prompts);
+      }
+    );
+  } catch (error) {
+    console.error('Error in get recent prompts endpoint:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -188,5 +289,4 @@ app.post('/api/login', async (req, res) => {
 const PORT = process.env.SERVER_PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Test the server at http://localhost:${PORT}/api/test`);
-}); 
+});
