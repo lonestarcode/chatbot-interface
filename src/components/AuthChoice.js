@@ -20,27 +20,31 @@ function AuthChoice({ darkMode, onAuthSuccess, onGuestAccess }) {
     setLoading(true);
     
     try {
-      console.log('Attempting login/register:', { email, view }); // Debug log
+      console.log('Attempting login/register:', { email, view });
       
       const endpoint = view === 'login' ? '/api/login' : '/api/register';
       const body = view === 'login' 
         ? { email, password }
         : { email, password, username };
 
-      console.log('Making request to:', `http://localhost:3001${endpoint}`); // Debug log
+      const url = `http://localhost:3001${endpoint}`;
+      console.log('Making request to:', url);
 
-      const response = await fetch(`http://localhost:3001${endpoint}`, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(body),
+        credentials: 'include'
       });
 
-      console.log('Response status:', response.status); // Debug log
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
 
       const data = await response.json();
-      console.log('Response data:', data); // Debug log
+      console.log('Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Authentication failed');
@@ -48,8 +52,8 @@ function AuthChoice({ darkMode, onAuthSuccess, onGuestAccess }) {
 
       onAuthSuccess(data.token);
     } catch (error) {
-      console.error('Auth error:', error); // Debug log
-      setError(error.message || 'An error occurred');
+      console.error('Auth error:', error);
+      setError(error.message || 'Failed to connect to the server. Please try again.');
     } finally {
       setLoading(false);
     }

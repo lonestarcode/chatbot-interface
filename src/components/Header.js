@@ -4,7 +4,6 @@ import {
   faPen, 
   faLightbulb, 
   faUserGroup,
-  faGear,
   faSun,
   faMoon 
 } from "@fortawesome/free-solid-svg-icons";
@@ -12,10 +11,6 @@ import {
 function Header({ darkMode, onToggleDarkMode, currentView, onNavigate }) {
   const [showSettings, setShowSettings] = useState(false);
   const settingsRef = useRef(null);
-
-  const toggleSettings = () => {
-    setShowSettings(!showSettings);
-  };
 
   return (
     <>
@@ -55,10 +50,10 @@ function Header({ darkMode, onToggleDarkMode, currentView, onNavigate }) {
             </h1>
           </div>
           <button 
-            onClick={toggleSettings}
+            onClick={onToggleDarkMode}
             className="md:hidden hover:text-gray-200 transition-colors"
           >
-            <FontAwesomeIcon icon={faGear} className="w-5 h-5" />
+            <FontAwesomeIcon icon={darkMode ? faSun : faMoon} className="w-5 h-5" />
           </button>
         </div>
 
@@ -82,11 +77,12 @@ function Header({ darkMode, onToggleDarkMode, currentView, onNavigate }) {
               <span className="text-sm">Prompts</span>
             </li>
             <li 
-              onClick={onToggleDarkMode}
-              className="flex items-center space-x-2 p-2 cursor-pointer rounded-lg text-gray-600 dark:text-gray-400"
+              onClick={() => onNavigate('groups')}
+              className={`flex items-center space-x-2 p-2 cursor-pointer rounded-lg
+                      ${currentView === 'groups' ? 'text-blue-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}
             >
-              <FontAwesomeIcon icon={darkMode ? faSun : faMoon} className="w-4 h-4" />
-              <span className="text-sm">{darkMode ? 'Light' : 'Dark'}</span>
+              <FontAwesomeIcon icon={faUserGroup} className="w-4 h-4" />
+              <span className="text-sm">Groups</span>
             </li>
           </ul>
         </nav>
