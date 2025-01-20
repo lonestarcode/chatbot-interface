@@ -111,19 +111,28 @@ function App() {
     }
   };
 
+  const handleNavigate = (view) => {
+    setCurrentView(view);
+  };
+
   return (
-    <div className="h-screen flex flex-col">
+    <div className={`h-screen flex flex-col ${darkMode ? 'dark' : ''}`}>
       {!isAuthenticated ? (
         <AuthChoice onAuthSuccess={handleAuthSuccess} onGuestAccess={handleGuestAccess} darkMode={darkMode} />
       ) : (
         <div className="flex flex-col h-full">
-          <Header darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+          <Header 
+            darkMode={darkMode} 
+            onToggleDarkMode={() => setDarkMode(!darkMode)}
+            currentView={currentView}
+            onNavigate={handleNavigate}
+          />
           <div className="flex flex-1">
             <Sidebar 
-              onNavigate={setCurrentView} 
+              onNavigate={handleNavigate}
               currentView={currentView}
               darkMode={darkMode}
-              onToggleDarkMode={toggleDarkMode}
+              onToggleDarkMode={() => setDarkMode(!darkMode)}
             />
             <main className="flex-1 relative">
               {currentView === 'chat' ? (

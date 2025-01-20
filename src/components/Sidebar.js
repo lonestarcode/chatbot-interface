@@ -5,7 +5,8 @@ import {
   faLightbulb,
   faGear,
   faSun,
-  faMoon 
+  faMoon,
+  faUserGroup
 } from '@fortawesome/free-solid-svg-icons';
 
 function Sidebar({ onNavigate, currentView, darkMode, onToggleDarkMode }) {
@@ -33,31 +34,18 @@ function Sidebar({ onNavigate, currentView, darkMode, onToggleDarkMode }) {
           </li>
         </ul>
       </nav>
-
-      <div className="space-y-4 absolute bottom-4 left-4 right-4">
-        <div className="border-t border-gray-300 dark:border-gray-700 pt-4">
-          <button 
-            onClick={onToggleDarkMode}
-            className="w-full p-3 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-lg cursor-pointer 
-                     transition-colors flex items-center space-x-3"
-          >
-            <FontAwesomeIcon 
-              icon={darkMode ? faSun : faMoon} 
-              className="text-gray-600 dark:text-gray-400 w-5 h-5" 
-            />
-            <span className="text-gray-700 dark:text-gray-300">
-              {darkMode ? 'Light Mode' : 'Dark Mode'}
-            </span>
-          </button>
-        </div>
-        <button 
-          className="w-full p-2 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-lg cursor-pointer 
-                   transition-colors flex items-center justify-center"
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-300 dark:border-gray-700">
+        <button
+          onClick={onToggleDarkMode}
+          className="w-full p-3 flex items-center space-x-3 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
-          <FontAwesomeIcon 
-            icon={faGear} 
-            className="text-gray-600 dark:text-gray-400 w-5 h-5" 
+          <FontAwesomeIcon
+            icon={darkMode ? faSun : faMoon}
+            className="text-gray-600 dark:text-gray-400 w-5 h-5"
           />
+          <span className="text-gray-700 dark:text-gray-300">
+            {darkMode ? 'Light Mode' : 'Dark Mode'}
+          </span>
         </button>
       </div>
     </aside>
