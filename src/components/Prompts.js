@@ -5,7 +5,7 @@ import { faBookmark, faClock } from '@fortawesome/free-solid-svg-icons';
 function Prompts({ darkMode, refreshTrigger }) {
   const [recentPrompts, setRecentPrompts] = useState([]);
   const [savedPrompts, setSavedPrompts] = useState([]);
-  const [activeTab, setActiveTab] = useState('saved');
+  const [activeTab, setActiveTab] = useState('recent');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,9 +20,6 @@ function Prompts({ darkMode, refreshTrigger }) {
       
       const token = localStorage.getItem('token');
       const isGuest = localStorage.getItem('isGuest');
-      
-      console.log('Fetching prompts with token:', token);
-      console.log('Is guest?', isGuest);
       
       if (!token || isGuest === 'true') {
         setSavedPrompts([]);
@@ -40,8 +37,6 @@ function Prompts({ darkMode, refreshTrigger }) {
         method: 'GET',
         headers
       });
-
-      console.log('Saved prompts response status:', savedRes.status);
       
       if (!savedRes.ok) {
         const errorData = await savedRes.json();
@@ -49,7 +44,6 @@ function Prompts({ darkMode, refreshTrigger }) {
       }
 
       const savedData = await savedRes.json();
-      console.log('Received saved prompts:', savedData);
       setSavedPrompts(savedData);
 
       const recentRes = await fetch('http://localhost:3001/api/prompts/recent', { 
@@ -96,49 +90,67 @@ function Prompts({ darkMode, refreshTrigger }) {
   const prompts = activeTab === 'saved' ? savedPrompts : recentPrompts;
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
-      <div className="flex space-x-4 mb-6">
-        <button
-          onClick={() => setActiveTab('saved')}
-          className={`px-4 py-2 rounded-lg transition-colors ${
-            activeTab === 'saved'
-              ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-          }`}
-        >
-          Saved Prompts
-        </button>
-        <button
-          onClick={() => setActiveTab('recent')}
-          className={`px-4 py-2 rounded-lg transition-colors ${
-            activeTab === 'recent'
-              ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-          }`}
-        >
-          Recent Prompts
-        </button>
-      </div>
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="max-w-3xl mx-auto p-4">
+        <div className="flex justify-center space-x-4 mb-6">
+          <button
+            onClick={() => setActiveTab('recent')}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'recent'
+                ? darkMode 
+                  ? 'bg-gray-700 text-white' 
+                  : 'bg-gray-200 text-gray-800'
+                : darkMode
+                  ? 'text-gray-400 hover:bg-gray-800'
+                  : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <FontAwesomeIcon icon={faClock} className="mr-2" />
+            Recent Prompts
+          </button>
+          <button
+            onClick={() => setActiveTab('saved')}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'saved'
+                ? darkMode 
+                  ? 'bg-gray-700 text-white' 
+                  : 'bg-gray-200 text-gray-800'
+                : darkMode
+                  ? 'text-gray-400 hover:bg-gray-800'
+                  : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <FontAwesomeIcon icon={faBookmark} className="mr-2" />
+            Saved Prompts
+          </button>
+        </div>
 
-      {prompts.length === 0 ? (
-        <div className="text-gray-600 dark:text-gray-400">
-          No {activeTab} prompts found.
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {prompts.map((prompt) => (
-            <div
-              key={prompt.id}
-              className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow"
-            >
-              <p className="text-gray-800 dark:text-gray-200">{prompt.content}</p>
-              <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                {new Date(prompt.created_at).toLocaleDateString()}
+        {prompts.length === 0 ? (
+          <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            No {activeTab} prompts found.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {prompts.map((prompt) => (
+              <div
+                key={prompt.id}
+                className={`p-4 rounded-lg shadow transition-shadow hover:shadow-md ${
+                  darkMode 
+                    ? 'bg-gray-800 text-gray-200' 
+                    : 'bg-white text-gray-800'
+                }`}
+              >
+                <p className={darkMode ? 'text-gray-200' : 'text-gray-800'}>
+                  {prompt.content}
+                </p>
+                <div className={`mt-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {new Date(prompt.created_at).toLocaleDateString()}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
