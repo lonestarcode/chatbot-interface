@@ -160,27 +160,20 @@ app.post('/api/login', async (req, res) => {
 // Prompts endpoints
 app.post('/api/prompts', async (req, res) => {
   try {
-    console.log('Received prompt save request:', req.body);
-    console.log('Headers:', req.headers);
-
     const token = req.headers.authorization?.split(' ')[1];
     if (!token || token === 'guest-token') {
-      console.log('Unauthorized: No token or guest token');
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-      console.log('Decoded token:', decoded);
     } catch (err) {
-      console.error('Token verification failed:', err);
       return res.status(401).json({ error: 'Invalid token' });
     }
 
     const { content } = req.body;
     if (!content) {
-      console.log('No content provided');
       return res.status(400).json({ error: 'Content is required' });
     }
 
@@ -190,17 +183,9 @@ app.post('/api/prompts', async (req, res) => {
       function(err) {
         if (err) {
           console.error('Database error when saving prompt:', err);
-          return res.status(500).json({ error: 'Error saving prompt' });
+          return res.status(500).json({ error: 'Database error' });
         }
-
-        console.log('Prompt saved successfully:', this.lastID);
-        res.status(201).json({
-          id: this.lastID,
-          content,
-          user_id: decoded.id,
-          is_saved: 1,
-          created_at: new Date().toISOString()
-        });
+        res.json({ id: this.lastID });
       }
     );
   } catch (error) {
@@ -281,6 +266,57 @@ app.get('/api/prompts/recent', async (req, res) => {
     );
   } catch (error) {
     console.error('Error in get recent prompts endpoint:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/prompts/:id/toggle-save', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token || token === 'guest-token') {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    const promptId = req.params.id;
+
+    // First, verify the prompt belongs to the user
+    db.get(
+      'SELECT is_saved FROM prompts WHERE id = ? AND user_id = ?',
+      [promptId, decoded.id],
+      (err, prompt) => {
+        if (err) {
+          console.error('Database error when checking prompt:', err);
+          return res.status(500).json({ error: 'Database error' });
+        }
+
+        if (!prompt) {
+          return res.status(404).json({ error: 'Prompt not found' });
+        }
+
+        // Toggle the is_saved status
+        const newSavedStatus = prompt.is_saved ? 0 : 1;
+        db.run(
+          'UPDATE prompts SET is_saved = ? WHERE id = ? AND user_id = ?',
+          [newSavedStatus, promptId, decoded.id],
+          (err) => {
+            if (err) {
+              console.error('Database error when updating prompt:', err);
+              return res.status(500).json({ error: 'Database error' });
+            }
+            res.json({ success: true, is_saved: newSavedStatus });
+          }
+        );
+      }
+    );
+  } catch (error) {
+    console.error('Error in toggle save endpoint:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

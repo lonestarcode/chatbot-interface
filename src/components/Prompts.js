@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark, faClock } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark } from '@fortawesome/free-solid-svg-icons';
 
 function Prompts({ darkMode, refreshTrigger }) {
-  const [recentPrompts, setRecentPrompts] = useState([]);
   const [savedPrompts, setSavedPrompts] = useState([]);
-  const [activeTab, setActiveTab] = useState('recent');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log('Fetching saved prompts...');
     fetchPrompts();
   }, [refreshTrigger]);
 
@@ -21,49 +20,69 @@ function Prompts({ darkMode, refreshTrigger }) {
       const token = localStorage.getItem('token');
       const isGuest = localStorage.getItem('isGuest');
       
+      console.log('Token:', token);
+      console.log('Is Guest:', isGuest);
+      
       if (!token || isGuest === 'true') {
+        console.log('No token or guest user, setting empty prompts');
         setSavedPrompts([]);
-        setRecentPrompts([]);
         setLoading(false);
         return;
       }
 
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      };
-
-      const savedRes = await fetch('http://localhost:3001/api/prompts/saved', { 
+      const response = await fetch('http://localhost:3001/api/prompts/saved', { 
         method: 'GET',
-        headers
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
       
-      if (!savedRes.ok) {
-        const errorData = await savedRes.json();
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to fetch saved prompts');
       }
 
-      const savedData = await savedRes.json();
-      setSavedPrompts(savedData);
-
-      const recentRes = await fetch('http://localhost:3001/api/prompts/recent', { 
-        method: 'GET',
-        headers
-      });
-
-      if (!recentRes.ok) {
-        const errorData = await recentRes.json();
-        throw new Error(errorData.error || 'Failed to fetch recent prompts');
-      }
-
-      const recentData = await recentRes.json();
-      setRecentPrompts(recentData);
+      const data = await response.json();
+      console.log('Received saved prompts:', data);
+      setSavedPrompts(data);
 
     } catch (error) {
       console.error('Error fetching prompts:', error);
       setError(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleSave = async (promptId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token || token === 'guest-token') {
+        console.error('Must be logged in to manage prompts');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:3001/api/prompts/${promptId}/toggle-save`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to toggle save status');
+      }
+
+      // Refresh the prompts list
+      fetchPrompts();
+    } catch (error) {
+      console.error('Error toggling save status:', error);
+      setError(error.message);
     }
   };
 
@@ -87,51 +106,23 @@ function Prompts({ darkMode, refreshTrigger }) {
     );
   }
 
-  const prompts = activeTab === 'saved' ? savedPrompts : recentPrompts;
-
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="max-w-3xl mx-auto p-4">
-        <div className="flex justify-center space-x-4 mb-6">
-          <button
-            onClick={() => setActiveTab('recent')}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              activeTab === 'recent'
-                ? darkMode 
-                  ? 'bg-gray-700 text-white' 
-                  : 'bg-gray-200 text-gray-800'
-                : darkMode
-                  ? 'text-gray-400 hover:bg-gray-800'
-                  : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <FontAwesomeIcon icon={faClock} className="mr-2" />
-            Recent Prompts
-          </button>
-          <button
-            onClick={() => setActiveTab('saved')}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              activeTab === 'saved'
-                ? darkMode 
-                  ? 'bg-gray-700 text-white' 
-                  : 'bg-gray-200 text-gray-800'
-                : darkMode
-                  ? 'text-gray-400 hover:bg-gray-800'
-                  : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
+        <div className="flex justify-center mb-6">
+          <h2 className={`text-xl font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
             <FontAwesomeIcon icon={faBookmark} className="mr-2" />
             Saved Prompts
-          </button>
+          </h2>
         </div>
 
-        {prompts.length === 0 ? (
+        {savedPrompts.length === 0 ? (
           <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            No {activeTab} prompts found.
+            No saved prompts found.
           </div>
         ) : (
           <div className="space-y-4">
-            {prompts.map((prompt) => (
+            {savedPrompts.map((prompt) => (
               <div
                 key={prompt.id}
                 className={`p-4 rounded-lg shadow transition-shadow hover:shadow-md ${
@@ -140,9 +131,17 @@ function Prompts({ darkMode, refreshTrigger }) {
                     : 'bg-white text-gray-800'
                 }`}
               >
-                <p className={darkMode ? 'text-gray-200' : 'text-gray-800'}>
-                  {prompt.content}
-                </p>
+                <div className="flex justify-between items-start">
+                  <p className={darkMode ? 'text-gray-200' : 'text-gray-800'}>
+                    {prompt.content}
+                  </p>
+                  <button
+                    onClick={() => handleToggleSave(prompt.id)}
+                    className={`ml-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-yellow-500`}
+                  >
+                    <FontAwesomeIcon icon={faBookmark} />
+                  </button>
+                </div>
                 <div className={`mt-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   {new Date(prompt.created_at).toLocaleDateString()}
                 </div>

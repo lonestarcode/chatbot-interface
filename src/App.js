@@ -69,39 +69,17 @@ function App() {
         body: JSON.stringify({ content: message })
       });
 
-      console.log('Response status:', response.status);
-      
-      // Get the response text first
-      const responseText = await response.text();
-      console.log('Response text:', responseText);
-
-      // Try to parse it as JSON
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        console.error('Failed to parse response as JSON:', e);
-        throw new Error('Server returned invalid JSON');
-      }
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to save prompt');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save prompt');
       }
-      
-      setSavedPrompts(prev => ({
-        ...prev,
-        [message]: data.id
-      }));
 
+      const data = await response.json();
       setPromptsRefreshTrigger(prev => prev + 1);
       
       return true;
     } catch (error) {
       console.error('Error saving prompt:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack
-      });
       return false;
     }
   };
